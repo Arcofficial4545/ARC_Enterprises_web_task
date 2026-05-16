@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #080704;
+  --bg-secondary: #141008;
+  --bg-card: rgba(212, 168, 67, 0.1);
+  --text-primary: #F2E4C0;
+  --text-secondary: #F2E4C0;
+  --text-muted: #D4A843;
+  --border-color: rgba(212, 168, 67, 0.4);
+  --nav-bg: rgba(212, 168, 67, 0.1);
+  --footer-bg: rgba(212, 168, 67, 0.1);
+  --input-bg: #141008;
+  --input-border: #D4A843;
+  --btn-primary-bg: #D4A843;
+  --btn-primary-text: #080704;
+  --btn-secondary-bg: rgba(212, 168, 67, 0.1);
+  --btn-secondary-text: #D4A843;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --toggle-bg: rgba(212, 168, 67, 0.3);
+  --toggle-knob: #D4A843;
+}
+
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f4f4f4;
+  --bg-card: #ffffff;
+  --text-primary: #111111;
+  --text-secondary: #444444;
+  --text-muted: #D4A843;
+  --border-color: #dddddd;
+  --nav-bg: #ffffff;
+  --footer-bg: #f4f4f4;
+  --input-bg: #ffffff;
+  --input-border: #cccccc;
+  --btn-primary-bg: #D4A843;
+  --btn-primary-text: #ffffff;
+  --btn-secondary-bg: #eeeeee;
+  --btn-secondary-text: #111111;
+  --shadow: rgba(0, 0, 0, 0.08);
+  --toggle-bg: #dddddd;
+  --toggle-knob: #111111;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Jost', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.glass {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  backdrop-filter: blur(20px);
+}
+
+nav.glass {
+  background: var(--nav-bg);
+}
+
+footer.glass {
+  background: var(--footer-bg);
+}
+
+button[role="switch"] {
+  background-color: var(--toggle-bg);
+  border-color: var(--border-color);
+}
+
+button[role="switch"] span {
+  background-color: var(--toggle-knob);
+  transform: translateX(4px);
+}
+
+[data-theme="light"] button[role="switch"] span {
+  transform: translateX(36px);
+}
+
+.bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.text-cream {
+  color: var(--text-primary);
+}
+
+.text-accent {
+  color: var(--text-muted);
+}
+
+.border-accent {
+  border-color: var(--input-border);
+}
