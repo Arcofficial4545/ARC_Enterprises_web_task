@@ -7,7 +7,8 @@ const RegisterPage = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'user'
   })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
@@ -53,7 +54,7 @@ const RegisterPage = () => {
     if (Object.keys(newErrors).length === 0) {
       try {
         setLoading(true)
-        await signup(formData.email, formData.password, formData.name)
+        await signup(formData.email, formData.password, formData.name, formData.role)
         navigate('/')
       } catch (err) {
         setErrors({ submit: 'Failed to create account. Email may already be in use.' })
@@ -118,7 +119,7 @@ const RegisterPage = () => {
               />
               {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
             </div>
-            <div className="mb-6">
+            <div className="mb-4">
               <label className="block mb-2 font-medium text-cream">Confirm Password</label>
               <input
                 type="password"
@@ -130,6 +131,20 @@ const RegisterPage = () => {
                 className={`w-full px-4 py-2 rounded bg-secondary border ${errors.confirmPassword ? 'border-red-500' : 'border-accent'} text-cream focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50`}
               />
               {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
+            </div>
+            <div className="mb-6">
+              <label className="block mb-2 font-medium text-cream">Select Role</label>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                disabled={loading}
+                className="w-full px-4 py-2 rounded bg-secondary border border-accent text-cream focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
+              >
+                <option value="user">Normal User</option>
+                <option value="admin">Administrator</option>
+              </select>
+              <p className="text-xs text-accent mt-1">Admin role grants control over all courses and users.</p>
             </div>
             <button
               type="submit"

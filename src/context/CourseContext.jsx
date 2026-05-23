@@ -1,4 +1,6 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
+import { collection, onSnapshot, query, orderBy, addDoc, getDocs, doc, deleteDoc, writeBatch } from 'firebase/firestore'
+import { db } from '../firebase/config'
 import { coursesDB } from '../data/courses'
 
 const CourseContext = createContext()
@@ -12,38 +14,66 @@ export const useCourses = () => {
 }
 
 export const CourseProvider = ({ children }) => {
-  const [courses, setCourses] = useState([...coursesDB])
+  const [courses, setCourses] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const createCourse = (course) => {
-    const newCourse = {
-      id: courses.length > 0 ? Math.max(...courses.map(c => c.id)) + 1 : 1,
-      ...course
+  useEffect(() => {
+    const q = query(collection(db, 'courses'), orderBy('createdAt', 'desc'))
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items = snapshot.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      }))
+      setCourses(items)
+      setLoading(false)
+    }, (err) => {
+      console.error("Firestore snapshot error:", err)
+      setLoading(false)
+    })
+
+    return unsubscribe
+  }, [])
+
+  const seedCourses = async (force = false) => {
+    try {
+      const collectionRef = collection(db, 'courses')
+      const snapshot = await getDocs(collectionRef)
+      
+      // Only seed if empty, or if forced
+      if (snapshot.size === 0 || force) {
+        // If forced, delete existing records first
+        if (force && snapshot.size > 0) {
+          const batch = writeBatch(db)
+          snapshot.docs.forEach((docRef) => {
+            batch.delete(docRef.ref)
+          })
+          await batch.commit()
+        }
+
+        // Add initial mock courses
+        for (const course of coursesDB) {
+          const { id, ...courseData } = course
+          await addDoc(collectionRef, {
+            ...courseData,
+            createdAt: new Date(),
+            userId: 'admin-seed',
+            ownerEmail: 'admin@arc.com'
+          })
+        }
+        return true
+      }
+      return false
+    } catch (err) {
+      console.error("Failed to seed courses:", err)
+      throw err
     }
-    setCourses(prev => [...prev, newCourse])
-    return newCourse
-  }
-
-  const updateCourse = (id, updates) => {
-    setCourses(prev => prev.map(course => 
-      course.id === id ? { ...course, ...updates } : course
-    ))
-  }
-
-  const deleteCourse = (id) => {
-    setCourses(prev => prev.filter(course => course.id !== id))
-  }
-
-  const resetCourses = () => {
-    setCourses([...coursesDB])
   }
 
   return (
     <CourseContext.Provider value={{ 
       courses, 
-      createCourse, 
-      updateCourse, 
-      deleteCourse, 
-      resetCourses 
+      loading,
+      seedCourses
     }}>
       {children}
     </CourseContext.Provider>

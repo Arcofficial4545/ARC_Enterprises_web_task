@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase/config'
 import { withTimeout } from '../utils/firestoreHelpers'
+import { useAuth } from '../context/AuthContext'
 
 const COLLECTION = 'courses'
 
 const CreateCourse = () => {
   const navigate = useNavigate()
+  const { currentUser } = useAuth()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -46,7 +48,9 @@ const CreateCourse = () => {
         instructor: formData.instructor.trim(),
         duration: formData.duration.trim(),
         inStock: formData.inStock,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        userId: currentUser?.uid || 'anonymous',
+        ownerEmail: currentUser?.email || 'anonymous'
       }))
       navigate('/courses')
     } catch (err) {

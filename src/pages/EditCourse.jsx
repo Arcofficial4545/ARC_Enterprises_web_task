@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase/config'
 import { withTimeout } from '../utils/firestoreHelpers'
+import { useAuth } from '../context/AuthContext'
 
 const COLLECTION = 'courses'
 
@@ -10,6 +11,7 @@ const EditCourse = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const dataLoaded = useRef(false)
+  const { currentUser } = useAuth()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -32,17 +34,24 @@ const EditCourse = () => {
         const snapshot = await withTimeout(getDoc(ref))
         if (!snapshot.exists()) {
           setError('Course not found.')
-        } else if (!dataLoaded.current) {
+        } else {
           const data = snapshot.data()
-          setFormData({
-            name: data.name || '',
-            category: data.category || 'fintech',
-            price: data.price || '',
-            instructor: data.instructor || '',
-            duration: data.duration || '',
-            inStock: data.inStock !== undefined ? data.inStock : true
-          })
-          dataLoaded.current = true
+          const isOwner = data.userId === currentUser?.uid
+          const isAdmin = currentUser?.role === 'admin'
+
+          if (!isOwner && !isAdmin) {
+            setError('Unauthorized. You do not have permission to edit this course.')
+          } else if (!dataLoaded.current) {
+            setFormData({
+              name: data.name || '',
+              category: data.category || 'fintech',
+              price: data.price || '',
+              instructor: data.instructor || '',
+              duration: data.duration || '',
+              inStock: data.inStock !== undefined ? data.inStock : true
+            })
+            dataLoaded.current = true
+          }
         }
       } catch (err) {
         setError(err.message || 'Failed to load course. Please try again.')
@@ -51,7 +60,7 @@ const EditCourse = () => {
       }
     }
     fetchCourse()
-  }, [id])
+  }, [id, currentUser])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target

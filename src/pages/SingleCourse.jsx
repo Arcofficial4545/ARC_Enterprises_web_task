@@ -3,12 +3,14 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { doc, getDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '../firebase/config'
 import { withTimeout } from '../utils/firestoreHelpers'
+import { useAuth } from '../context/AuthContext'
 
 const COLLECTION = 'courses'
 
 const SingleCourse = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { currentUser } = useAuth()
   const [course, setCourse] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -34,6 +36,17 @@ const SingleCourse = () => {
   }, [id])
 
   const handleDelete = async () => {
+    if (!currentUser) {
+      navigate('/auth/login')
+      return
+    }
+    const isOwner = course?.userId === currentUser.uid
+    const isAdmin = currentUser.role === 'admin'
+    if (!isOwner && !isAdmin) {
+      alert('Unauthorized. You do not have permission to delete this course.')
+      return
+    }
+
     if (!window.confirm('Are you sure you want to delete this course?')) return
     try {
       await withTimeout(deleteDoc(doc(db, COLLECTION, id)))
@@ -117,18 +130,22 @@ const SingleCourse = () => {
             )}
 
             <div className="flex gap-3 mt-6">
-              <Link
-                to={`/courses/${id}/edit`}
-                className="px-6 py-2 bg-accent text-primary rounded hover:opacity-90 transition font-semibold"
-              >
-                Edit
-              </Link>
-              <button
-                onClick={handleDelete}
-                className="px-6 py-2 bg-red-600 text-white rounded hover:opacity-90 transition font-semibold"
-              >
-                Delete
-              </button>
+              {currentUser && (currentUser.role === 'admin' || currentUser.uid === course.userId) && (
+                <>
+                  <Link
+                    to={`/courses/${id}/edit`}
+                    className="px-6 py-2 bg-accent text-primary rounded hover:opacity-90 transition font-semibold"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={handleDelete}
+                    className="px-6 py-2 bg-red-600 text-white rounded hover:opacity-90 transition font-semibold"
+                  >
+                    Delete
+                  </button>
+                </>
+              )}
               <Link
                 to="/courses"
                 className="px-6 py-2 glass rounded text-accent hover:bg-accent hover:text-primary transition font-semibold"

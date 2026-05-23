@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore'
 import { db } from '../firebase/config'
 import { withTimeout } from '../utils/firestoreHelpers'
+import { useAuth } from '../context/AuthContext'
 
 const COLLECTION = 'courses'
 
@@ -10,6 +11,7 @@ const AllCourses = () => {
   const [courses, setCourses] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const { currentUser } = useAuth()
 
   useEffect(() => {
     fetchCourses()
@@ -28,7 +30,15 @@ const AllCourses = () => {
     }
   }
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id, courseUserId) => {
+    if (!currentUser) return
+    const isOwner = courseUserId === currentUser.uid
+    const isAdmin = currentUser.role === 'admin'
+    if (!isOwner && !isAdmin) {
+      alert('Unauthorized. You do not have permission to delete this course.')
+      return
+    }
+
     if (!window.confirm('Are you sure you want to delete this course?')) return
     try {
       await withTimeout(deleteDoc(doc(db, COLLECTION, id)))
@@ -115,12 +125,14 @@ const AllCourses = () => {
                       >
                         View
                       </Link>
-                      <button
-                        onClick={() => handleDelete(course.id)}
-                        className="px-4 py-2 bg-red-600 text-white rounded hover:opacity-90 transition"
-                      >
-                        Delete
-                      </button>
+                      {currentUser && (currentUser.role === 'admin' || currentUser.uid === course.userId) && (
+                        <button
+                          onClick={() => handleDelete(course.id, course.userId)}
+                          className="px-4 py-2 bg-red-600 text-white rounded hover:opacity-90 transition"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

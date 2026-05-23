@@ -38,6 +38,19 @@ const Navbar = () => {
             <Link to="/courses" className="text-cream hover:text-accent transition duration-300">
               Courses
             </Link>
+            {currentUser && (
+              <>
+                <Link to="/chat" className="text-cream hover:text-accent transition duration-300">
+                  Chat
+                </Link>
+                <Link
+                  to={currentUser.role === 'admin' ? '/dashboard/admin' : '/dashboard/user'}
+                  className="text-cream hover:text-accent transition duration-300"
+                >
+                  {currentUser.role === 'admin' ? 'Admin Panel' : 'Dashboard'}
+                </Link>
+              </>
+            )}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium select-none">
                 {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
@@ -55,9 +68,12 @@ const Navbar = () => {
           <div className="flex space-x-4 items-center">
             {currentUser ? (
               <>
-                <span className="text-cream text-sm">
-                  Welcome, {currentUser.displayName || currentUser.email}
-                </span>
+                <Link
+                  to={currentUser.role === 'admin' ? '/dashboard/admin' : '/dashboard/user'}
+                  className="text-cream text-sm hover:text-accent transition duration-300 hidden sm:inline"
+                >
+                  Welcome, <span className="font-semibold">{currentUser.displayName || currentUser.email.split('@')[0]}</span>
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="px-4 py-2 glass rounded-lg text-accent hover:bg-accent hover:text-primary transition duration-300"
